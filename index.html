@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en" data-world="abyss">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MYTHIC CHEATSHEET • FAST-LHR Portal</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    :root, [data-world="abyss"] {
+      --bg-base: #06070b;
+      --bg-grad: radial-gradient(circle at 15% 15%, rgba(212, 175, 55, 0.14), transparent 45%),
+                 radial-gradient(circle at 85% 20%, rgba(139, 92, 246, 0.16), transparent 50%),
+                 #06070b;
+      --surface: rgba(14, 17, 26, 0.75);
+      --surface-solid: #0e111a;
+      --border: rgba(212, 175, 55, 0.28);
+      --accent: #f59e0b;
+      --accent-2: #a855f7;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --card-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+      --radius: 16px;
+    }
+
+    [data-world="synthwave"] {
+      --bg-base: #090214;
+      --bg-grad: linear-gradient(180deg, #090214 0%, #1a0633 60%, #2d0845 100%);
+      --surface: rgba(22, 7, 42, 0.78);
+      --surface-solid: #16072a;
+      --border: rgba(0, 245, 212, 0.38);
+      --accent: #00f5d4;
+      --accent-2: #ff2a85;
+      --text: #ffffff;
+      --muted: #cbd5e1;
+      --card-shadow: 0 0 35px rgba(255, 42, 133, 0.25);
+      --radius: 14px;
+    }
+
+    [data-world="botanical"] {
+      --bg-base: #04110b;
+      --bg-grad: radial-gradient(circle at 80% 10%, rgba(16, 185, 129, 0.18), transparent 50%),
+                 radial-gradient(circle at 10% 80%, rgba(234, 179, 8, 0.12), transparent 50%),
+                 #04110b;
+      --surface: rgba(8, 28, 20, 0.78);
+      --surface-solid: #081c14;
+      --border: rgba(52, 211, 153, 0.3);
+      --accent: #34d399;
+      --accent-2: #fbbf24;
+      --text: #ecfdf5;
+      --muted: #6ee7b7;
+      --card-shadow: 0 20px 45px rgba(0, 0, 0, 0.7);
+      --radius: 18px;
+    }
+
+    [data-world="brutalist"] {
+      --bg-base: #f4f1ea;
+      --bg-grad: linear-gradient(90deg, rgba(15,23,42,0.05) 1px, transparent 1px),
+                 linear-gradient(rgba(15,23,42,0.05) 1px, transparent 1px),
+                 #f4f1ea;
+      --surface: #ffffff;
+      --surface-solid: #ffffff;
+      --border: #0f172a;
+      --accent: #ff4d00;
+      --accent-2: #2563eb;
+      --text: #0f172a;
+      --muted: #475569;
+      --card-shadow: 6px 6px 0px #0f172a;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body {
+      background: var(--bg-grad);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+    [data-world="brutalist"] body { background-size: 28px 28px, 28px 28px, 100% 100%; }
+
+    #bg-canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 0; }
+    .floating-orb { position: fixed; border-radius: 50%; filter: blur(75px); pointer-events: none; z-index: 0; opacity: 0.35; }
+    .orb-1 { width: 360px; height: 360px; background: var(--accent); top: -80px; left: -80px; }
+    .orb-2 { width: 420px; height: 420px; background: var(--accent-2); bottom: -120px; right: -100px; }
+    [data-world="brutalist"] .floating-orb { display: none; }
+
+    .app-shell { position: relative; z-index: 2; max-width: 1120px; margin: 0 auto; padding: 28px 18px 60px; display: flex; flex-direction: column; gap: 20px; }
+
+    .top-bar {
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;
+      padding: 12px 18px; background: var(--surface); backdrop-filter: blur(16px);
+      border: 1.5px solid var(--border); border-radius: var(--radius); box-shadow: var(--card-shadow);
+    }
+    .brand-badge { display: flex; align-items: center; gap: 10px; }
+    .mythic-cube {
+      width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: grid; place-items: center; font-weight: 900; color: #fff; font-size: 15px;
+    }
+    .world-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+    .world-pill {
+      padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); background: transparent;
+      color: var(--muted); font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.18s;
+    }
+    .world-pill.active, .world-pill:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+
+    .hero-box {
+      text-align: center; padding: 26px 20px; background: var(--surface); backdrop-filter: blur(16px);
+      border: 1.5px solid var(--border); border-radius: var(--radius); box-shadow: var(--card-shadow);
+    }
+    .hero-title {
+      font-size: clamp(1.9rem, 4vw, 2.7rem); font-weight: 900; letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--accent) 0%, #ffffff 50%, var(--accent-2) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    [data-world="brutalist"] .hero-title { background: none; -webkit-text-fill-color: var(--text); }
+    .hero-meta { margin-top: 8px; font-size: 0.76rem; font-weight: 700; color: var(--muted); line-height: 1.5; }
+    .hero-pill {
+      display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; padding: 5px 14px;
+      border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,0.04);
+      font-size: 0.75rem; font-weight: 800; color: var(--accent);
+    }
+
+    .mode-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    @media (max-width: 780px) { .mode-grid { grid-template-columns: repeat(2, 1fr); } }
+    .mode-card {
+      background: var(--surface); backdrop-filter: blur(14px); border: 1.5px solid var(--border);
+      border-radius: var(--radius); padding: 16px 14px; text-align: center; cursor: pointer;
+      box-shadow: var(--card-shadow); transition: transform 0.18s, border-color 0.18s;
+    }
+    .mode-card:hover, .mode-card.active { transform: translateY(-3px); border-color: var(--accent); }
+    .mode-card.active { background: linear-gradient(145deg, rgba(245, 158, 11, 0.15), rgba(168, 85, 247, 0.12)); }
+    .mode-card h3 { font-size: 0.92rem; font-weight: 800; color: var(--text); }
+    .mode-card p { font-size: 0.72rem; color: var(--accent); margin-top: 4px; font-weight: 700; }
+
+    .studio-panel {
+      background: var(--surface); backdrop-filter: blur(16px); border: 1.5px solid var(--border);
+      border-radius: var(--radius); padding: 22px; box-shadow: var(--card-shadow);
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    .panel-header h2 { font-size: 1.15rem; font-weight: 900; }
+
+    input[type="text"], select {
+      width: 100%; height: 44px; padding: 0 14px; border-radius: 10px; border: 1.5px solid var(--border);
+      background: var(--surface-solid); color: var(--text); font-size: 0.9rem; font-weight: 600; outline: none;
+    }
+    input[type="text"]:focus, select:focus { border-color: var(--accent); }
+
+    .toggles-bar {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 10px 14px;
+      border-radius: 12px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border);
+    }
+    .toggle-pill { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+    .toggle-pill input { width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; }
+
+    .manual-row { display: grid; grid-template-columns: 1fr 2fr auto; gap: 10px; align-items: center; margin-bottom: 8px; }
+    .btn-del { width: 38px; height: 38px; border-radius: 8px; border: none; background: #ef4444; color: white; font-weight: 900; cursor: pointer; }
+    .btn-add-circle {
+      width: 40px; height: 40px; border-radius: 50%; border: none; background: #10b981; color: white;
+      font-size: 1.3rem; font-weight: 900; cursor: pointer; margin: 4px auto; display: grid; place-items: center;
+    }
+
+    .btn-primary {
+      width: 100%; height: 46px; border-radius: 10px; border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff;
+      font-size: 0.88rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer;
+    }
+    .btn-secondary {
+      padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-solid);
+      color: var(--accent); font-size: 0.78rem; font-weight: 800; cursor: pointer;
+    }
+
+    /* Clean Card Exports */
+    .export-toolbar {
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;
+      padding: 12px 16px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px;
+    }
+    #capture-card { width: 100%; padding: 34px 30px 26px; border-radius: 14px; transition: all 0.2s; }
+    #capture-card.card-mythic { background: radial-gradient(circle at top right, #1e1b4b, #090d16 70%); color: #f8fafc; border: 2px solid rgba(245, 158, 11, 0.45); }
+    #capture-card.card-mythic .c-title { color: #f59e0b; font-size: 2.4rem; font-weight: 900; text-align: center; }
+    #capture-card.card-mythic .c-sub { color: #cbd5e1; text-align: center; font-size: 0.82rem; margin-top: 4px; font-weight: 600; }
+    #capture-card.card-mythic .c-bar { height: 4px; background: linear-gradient(90deg, #f59e0b, #a855f7); margin: 14px 0 20px; border-radius: 2px; }
+    #capture-card.card-mythic table { width: 100%; border-collapse: collapse; }
+    #capture-card.card-mythic th { border: 1px solid rgba(245, 158, 11, 0.3); background: rgba(255,255,255,0.04); padding: 11px; color: #f59e0b; font-size: 0.8rem; font-weight: 800; }
+    #capture-card.card-mythic td { border: 1px solid rgba(255, 255, 255, 0.14); padding: 10px 14px; font-size: 0.82rem; }
+
+    #capture-card.card-dark { background: #111827; color: #ffffff; border: 1px solid #374151; }
+    #capture-card.card-dark .c-title { color: #38bdf8; font-size: 2.4rem; font-weight: 900; text-align: center; }
+    #capture-card.card-dark .c-sub { color: #94a3b8; text-align: center; font-size: 0.82rem; margin-top: 4px; font-weight: 600; }
+    #capture-card.card-dark .c-bar { height: 4px; background: #0284c7; margin: 14px 0 20px; }
+    #capture-card.card-dark table { width: 100%; border-collapse: collapse; }
+    #capture-card.card-dark th { border: 1px solid #374151; padding: 11px; color: #ffffff; font-size: 0.8rem; font-weight: 800; }
+    #capture-card.card-dark td { border: 1px solid #374151; padding: 10px 14px; font-size: 0.82rem; }
+
+    #capture-card.card-light { background: #ffffff; color: #000000; border: 2px solid #000000; }
+    #capture-card.card-light .c-title { color: #0284c7; font-size: 2.6rem; font-weight: 900; text-align: center; font-family: Georgia, serif; }
+    #capture-card.card-light .c-sub { color: #334155; text-align: center; font-size: 0.82rem; margin-top: 4px; font-weight: 700; }
+    #capture-card.card-light .c-bar { height: 5px; background: #0284c7; margin: 14px 0 20px; }
+    #capture-card.card-light table { width: 100%; border-collapse: collapse; border: 2px solid #000; }
+    #capture-card.card-light th { border: 2px solid #000; padding: 11px; color: #000; font-size: 0.84rem; font-weight: 900; }
+    #capture-card.card-light td { border: 2px solid #000; padding: 10px 14px; font-size: 0.82rem; color: #000; font-weight: 600; }
+
+    .cr-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; margin-left: 6px; background: rgba(56, 189, 248, 0.18); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); }
+    #capture-card.card-light .cr-badge { background: #e0f2fe; color: #0369a1; border-color: #0284c7; }
+  </style>
+</head>
+<body>
+
+  <canvas id="bg-canvas"></canvas>
+  <div class="floating-orb orb-1"></div>
+  <div class="floating-orb orb-2"></div>
+
+  <div class="app-shell">
+    <header class="top-bar">
+      <div class="brand-badge">
+        <div class="mythic-cube">M</div>
+        <div>
+          <div style="font-weight: 900; font-size: 0.95rem;">MYTHIC CHEATSHEET</div>
+          <div style="font-size: 0.68rem; color: var(--muted);">mythicheatsheet.netlify.app</div>
+        </div>
+      </div>
+      <div class="world-pills">
+        <button class="world-pill active" onclick="setWorld('abyss', this)">🌌 Mythic Abyss</button>
+        <button class="world-pill" onclick="setWorld('synthwave', this)">🌆 Synthwave Grid</button>
+        <button class="world-pill" onclick="setWorld('botanical', this)">🌿 Cyber-Botanical</button>
+        <button class="world-pill" onclick="setWorld('brutalist', this)">📐 Neo-Brutalist</button>
+      </div>
+    </header>
+
+    <section class="hero-box">
+      <h1 class="hero-title">MYTHIC FAST-LHR PORTAL</h1>
+      <div class="hero-meta">
+        LAST UPDATED: <span id="meta-updated">26 OCTOBER 2026 03:55 AM</span><br />
+        VERSION: <span id="meta-version">FALL 2026 FSC V1.1.5</span>
+      </div>
+      <div class="hero-pill">
+        <span>✨ Smart Credit Hours</span> •
+        <span>⚡ 1-Click Exam Auto-Fill</span> •
+        <span id="meta-exam-badge">💀 MIDTERM-II ACTIVE</span>
+      </div>
+    </section>
+
+    <div class="mode-grid">
+      <div class="mode-card active" id="tab-quick" onclick="switchMode('quick')">
+        <h3>⚡ Section TimeTable</h3>
+        <p>Instant Search →</p>
+      </div>
+      <div class="mode-card" id="tab-manual" onclick="switchMode('manual')">
+        <h3>🛠️ Manual Generator</h3>
+        <p>Mix Sections →</p>
+      </div>
+      <div class="mode-card" id="tab-exams" onclick="switchMode('exams')">
+        <h3 id="card-exam-title">💀 Mid-II DateSheet</h3>
+        <p>Auto-Fill Exams →</p>
+      </div>
+      <div class="mode-card" id="tab-rooms" onclick="switchMode('rooms')">
+        <h3>🚪 Free Room Radar</h3>
+        <p>Find Empty Rooms →</p>
+      </div>
+    </div>
+
+    <!-- MODE 1: SECTION TIMETABLE -->
+    <section id="panel-quick" class="studio-panel">
+      <div class="panel-header">
+        <h2>Customize Your Section TimeTable</h2>
+        <span id="quick-cr-total" style="font-size: 0.82rem; font-weight: 800; color: var(--accent);"></span>
+      </div>
+      <div>
+        <label style="font-size: 0.74rem; font-weight: 800; color: var(--muted); display: block; margin-bottom: 6px;">
+          SEARCH & SELECT SECTION (e.g. BDS-5A, BCS-1A1, BSE-3A)
+        </label>
+        <input type="text" id="quick-sec-input" list="sec-datalist" placeholder="Type section e.g. BDS-5A..." oninput="renderQuickTimetable()" />
+        <datalist id="sec-datalist"></datalist>
+      </div>
+      <div class="toggles-bar">
+        <label class="toggle-pill"><input type="checkbox" id="q-teachers" checked onchange="renderQuickTimetable()"> Show Teachers</label>
+        <label class="toggle-pill"><input type="checkbox" id="q-credits" checked onchange="renderQuickTimetable()"> Show Credit Hours</label>
+      </div>
+    </section>
+
+    <!-- MODE 2: MANUAL GENERATOR -->
+    <section id="panel-manual" class="studio-panel" style="display: none;">
+      <div class="panel-header">
+        <h2>Manual Multi-Section Generator</h2>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-secondary" onclick="loadSectionIntoManual()">📥 Load Section Courses</button>
+          <button class="btn-secondary" onclick="clearManualRows()">🗑️ Clear Rows</button>
+        </div>
+      </div>
+      <div id="manual-rows"></div>
+      <button class="btn-add-circle" onclick="addManualRow()" title="Add Course">+</button>
+      <div class="toggles-bar">
+        <label class="toggle-pill"><input type="checkbox" id="m-teachers" checked> Enable Teachers</label>
+        <label class="toggle-pill"><input type="checkbox" id="m-credits" checked> Enable Credit Hours</label>
+      </div>
+      <button class="btn-primary" onclick="generateManualSchedule()">⚡ Generate Custom TimeTable</button>
+    </section>
+
+    <!-- MODE 3: EXAM DATESHEET -->
+    <section id="panel-exams" class="studio-panel" style="display: none;">
+      <div class="panel-header">
+        <div>
+          <h2 id="exam-creator-heading">MIDTERM-II TIME TABLE CREATOR</h2>
+          <p style="font-size: 0.74rem; color: var(--muted); margin-top: 2px;">Select up to 9 courses by code/title or auto-fill directly from your timetable</p>
+        </div>
+        <button class="btn-secondary" onclick="autoFillExamsFromTimetable()">⚡ Auto-Fill From TimeTable</button>
+      </div>
+      <div id="exam-selectors-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px;"></div>
+      <button class="btn-primary" onclick="generateExamSchedule()">🔥 Generate Exam DateSheet</button>
+    </section>
+
+    <!-- MODE 4: FREE ROOM RADAR -->
+    <section id="panel-rooms" class="studio-panel" style="display: none;">
+      <div class="panel-header">
+        <h2>Campus Free Room & Lab Radar</h2>
+        <span id="free-room-count" style="font-size: 0.8rem; font-weight: 800; color: var(--accent);"></span>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <select id="radar-day" onchange="renderFreeRooms()">
+          <option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option>
+        </select>
+        <select id="radar-slot" onchange="renderFreeRooms()">
+          <option value="08:30">08:30 AM – 09:50 AM</option>
+          <option value="10:00">10:00 AM – 11:20 AM</option>
+          <option value="11:30">11:30 AM – 12:50 PM</option>
+          <option value="13:00">01:00 PM – 02:20 PM</option>
+          <option value="14:30">02:30 PM – 03:50 PM</option>
+          <option value="16:00">04:00 PM – 05:20 PM</option>
+        </select>
+      </div>
+      <div id="free-rooms-grid" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;"></div>
+    </section>
+
+    <!-- EXPORT CARD -->
+    <div id="export-section" style="display: none; flex-direction: column; gap: 14px;">
+      <div class="export-toolbar">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span style="font-size: 0.74rem; font-weight: 800; color: var(--muted);">CARD THEME:</span>
+          <button class="btn-secondary" onclick="setCardStyle('card-mythic')">🌌 Mythic Gold</button>
+          <button class="btn-secondary" onclick="setCardStyle('card-dark')">🌑 Classic Dark</button>
+          <button class="btn-secondary" onclick="setCardStyle('card-light')">☀️ Crisp White</button>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn-secondary" onclick="downloadCardPNG()">📥 Download PNG Image</button>
+          <button class="btn-secondary" onclick="window.print()">🖨️ Print</button>
+        </div>
+      </div>
+
+      <div id="capture-card" class="card-mythic">
+        <div class="c-title" id="card-heading">BDS-5A</div>
+        <div class="c-sub" id="card-subheading">Total Enrolled: 14 Credit Hours</div>
+        <div class="c-bar"></div>
+        <table id="card-table"></table>
+        <div style="text-align: center; margin-top: 24px; font-weight: 800; font-size: 0.95rem;">
+          Generate your TimeTable & Exam Sheet at <span style="color: var(--accent);">mythicheatsheet.netlify.app</span>
+        </div>
+      </div>
+    </div>
+
+    <footer style="text-align: center; font-size: 0.75rem; color: var(--muted); padding-top: 10px;">
+      MYTHIC CHEATSHEET • FAST-NUCES Lahore • Built for Students
+    </footer>
+  </div>
+
+  <script src="data.js"></script>
+  <script>
+    // Canvas animation
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let shapes = [];
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resize); resize();
+    for (let i = 0; i < 18; i++) {
+      shapes.push({
+        x: Math.random() * innerWidth, y: Math.random() * innerHeight, size: 18 + Math.random() * 32,
+        vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4, angle: Math.random() * 6.28,
+        vAngle: (Math.random() - 0.5) * 0.01, sides: [3, 4, 6][i % 3]
+      });
+    }
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--particle-color') || 'rgba(245,158,11,0.3)';
+      ctx.lineWidth = 1.2;
+      shapes.forEach(s => {
+        s.x += s.vx; s.y += s.vy; s.angle += s.vAngle;
+        if (s.x < -50) s.x = canvas.width + 50; if (s.x > canvas.width + 50) s.x = -50;
+        if (s.y < -50) s.y = canvas.height + 50; if (s.y > canvas.height + 50) s.y = -50;
+        ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.angle); ctx.beginPath();
+        for (let i = 0; i < s.sides; i++) {
+          const a = (i / s.sides) * Math.PI * 2;
+          ctx.lineTo(Math.cos(a) * s.size, Math.sin(a) * s.size);
+        }
+        ctx.closePath(); ctx.stroke(); ctx.restore();
+      });
+      requestAnimationFrame(draw);
+    }
+    draw();
+
+    function setWorld(w, btn) {
+      document.documentElement.dataset.world = w;
+      document.querySelectorAll('.world-pill').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+    }
+
+    // Data Engine
+    const RAW = window.TIMETABLE_DATA || { meta: {}, entries: [], exams: [] };
+    const TT = RAW.entries || [];
+    const EXAMS = RAW.exams || [];
+    let currentClasses = [];
+
+    function calcCredits(entry) {
+      if (entry.credits !== undefined) return entry.credits;
+      const t = (entry.course || '').toLowerCase(), c = (entry.code || '').toUpperCase();
+      const m = (entry.slot || '').match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
+      const mins = m ? (parseInt(m[3])*60+parseInt(m[4])) - (parseInt(m[1])*60+parseInt(m[2])) : 80;
+      if (t.includes('lab') || /^(CL|EL|SL|AL|DL)\d/.test(c)) return 1;
+      if (mins >= 75 && mins <= 95) return 3;
+      if (mins >= 150) return 3;
+      if (mins >= 100 && mins <= 130) return t.includes('quran') ? 1 : 2;
+      if (mins <= 65) return (t.includes('sirat') || t.includes('seerat')) ? 0 : 1;
+      return 3;
+    }
+
+    function fmt12(slot) {
+      const p = (slot || '').split(/\s*[-–—]\s*/);
+      if (p.length !== 2) return slot;
+      const to12 = t => {
+        const m = t.trim().match(/^(\d{1,2}):(\d{2})$/);
+        if (!m) return t;
+        let h = parseInt(m[1]), mn = m[2];
+        const ap = h < 12 ? 'AM' : 'PM';
+        h = h % 12 || 12;
+        return `${String(h).padStart(2, '0')}:${mn} ${ap}`;
+      };
+      return `${to12(p[0])} – ${to12(p[1])}`;
+    }
+
+    function secTokens(sec) {
+      const p = (sec || '').toUpperCase().split(/[/,&]+/).map(s => s.trim()).filter(Boolean);
+      if (!p.length) return [];
+      const m = p[0].match(/^([A-Z]+)-/);
+      const pre = m ? m[1] : '';
+      return p.map(x => (pre && /^\d/.test(x)) ? `${pre}-${x}` : x);
+    }
+
+    function secMatches(entrySec, userSec) {
+      const tokens = secTokens(entrySec);
+      if (tokens.includes(userSec)) return true;
+      const m = userSec.match(/^([A-Z]+-\d+[A-Z])\d+$/);
+      return m ? tokens.includes(m[1]) : false;
+    }
+
+    function switchMode(m) {
+      ['quick', 'manual', 'exams', 'rooms'].forEach(x => {
+        document.getElementById('panel-' + x).style.display = (x === m) ? 'flex' : 'none';
+        document.getElementById('tab-' + x).classList.toggle('active', x === m);
+      });
+      if (m === 'rooms') renderFreeRooms();
+    }
+
+    function renderQuickTimetable() {
+      const sec = document.getElementById('quick-sec-input').value.trim().toUpperCase();
+      const matched = TT.filter(e => secMatches(e.section, sec));
+      if (!matched.length) return;
+      currentClasses = matched;
+      renderCard(sec, matched, {
+        showTeachers: document.getElementById('q-teachers').checked,
+        showCredits: document.getElementById('q-credits').checked
+      });
+    }
+
+    function addManualRow(defaultSec = 'BDS-5A', defaultCourse = '') {
+      const c = document.getElementById('manual-rows');
+      const id = 'mr-' + Math.random().toString(36).slice(2, 6);
+      const allSecs = [...new Set(TT.flatMap(e => secTokens(e.section)))].sort();
+      const div = document.createElement('div');
+      div.className = 'manual-row';
+      div.id = id;
+      div.innerHTML = `
+        <select onchange="fillManualCourses('${id}', this.value)">
+          ${allSecs.map(s => `<option value="${s}" ${s === defaultSec ? 'selected' : ''}>${s}</option>`).join('')}
+        </select>
+        <select id="${id}-c"></select>
+        <button class="btn-del" onclick="document.getElementById('${id}').remove()">✕</button>
+      `;
+      c.appendChild(div);
+      fillManualCourses(id, defaultSec, defaultCourse);
+    }
+
+    function fillManualCourses(id, sec, sel = '') {
+      const selEl = document.getElementById(`${id}-c`);
+      const list = [...new Set(TT.filter(e => secMatches(e.section, sec)).map(c => c.course))].sort();
+      selEl.innerHTML = list.map(c => `<option value="${c}" ${c === sel ? 'selected' : ''}>${c}</option>`).join('');
+    }
+
+    function loadSectionIntoManual() {
+      const sec = document.getElementById('quick-sec-input').value.trim().toUpperCase() || 'BDS-5A';
+      const list = [...new Set(TT.filter(e => secMatches(e.section, sec)).map(c => c.course))];
+      document.getElementById('manual-rows').innerHTML = '';
+      list.forEach(c => addManualRow(sec, c));
+    }
+
+    function clearManualRows() {
+      document.getElementById('manual-rows').innerHTML = '';
+      addManualRow('BDS-5A');
+    }
+
+    function generateManualSchedule() {
+      const rows = document.querySelectorAll('.manual-row');
+      let picked = [], secs = new Set();
+      rows.forEach(r => {
+        const s = r.querySelectorAll('select')[0].value, c = r.querySelectorAll('select')[1].value;
+        secs.add(s);
+        TT.filter(e => secMatches(e.section, s) && e.course === c).forEach(m => picked.push(m));
+      });
+      if (!picked.length) return;
+      currentClasses = picked;
+      renderCard(secs.size === 1 ? [...secs][0] : 'CUSTOM ROUTINE', picked, {
+        showTeachers: document.getElementById('m-teachers').checked,
+        showCredits: document.getElementById('m-credits').checked,
+        isManual: true
+      });
+    }
+
+    function renderCard(title, classes, opts) {
+      const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const crMap = new Map();
+      classes.forEach(c => crMap.set(c.code || c.course, calcCredits(c)));
+      const totalCr = [...crMap.values()].reduce((a, b) => a + b, 0);
+
+      document.getElementById('quick-cr-total').textContent = `Enrolled: ${crMap.size} Courses • ${totalCr} Credit Hours`;
+      document.getElementById('card-heading').textContent = title;
+      document.getElementById('card-subheading').textContent = opts.isManual
+        ? `(Generated using Manual Generator • Total: ${totalCr} Credit Hours)`
+        : `${RAW.meta?.version || 'Fall 2026'} • Total: ${totalCr} Credit Hours`;
+
+      const byDay = {};
+      classes.forEach(c => {
+        if (!byDay[c.day]) byDay[c.day] = [];
+        byDay[c.day].push(c);
+      });
+
+      let html = `<thead><tr><th style="width:125px;">Day</th><th>Course Name</th><th style="width:205px;">Timing</th><th style="width:115px;">Venue</th></tr></thead><tbody>`;
+
+      DAYS.filter(d => byDay[d]).forEach(day => {
+        const list = byDay[day].sort((a, b) => (a.slot || '').localeCompare(b.slot || ''));
+        list.forEach((item, idx) => {
+          const cr = calcCredits(item);
+          const crLabel = cr === 0 ? 'NC' : `${cr} Cr`;
+          html += `<tr>`;
+          if (idx === 0) html += `<td rowspan="${list.length}" style="text-align:center; font-weight:900; vertical-align:middle;">${day}</td>`;
+          html += `
+            <td>
+              <div style="font-weight:800;">${item.course} ${opts.showCredits ? `<span class="cr-badge">${crLabel}</span>` : ''}</div>
+              ${opts.showTeachers && item.teacher ? `<div style="font-size:0.73rem; opacity:0.75; margin-top:3px;">${item.teacher}</div>` : ''}
+            </td>
+            <td style="text-align:center; white-space:nowrap; font-weight:700;">${fmt12(item.slot)}</td>
+            <td style="text-align:center; font-weight:800;">${item.room || 'TBA'}</td>
+          </tr>`;
+        });
+      });
+      html += `</tbody>`;
+      document.getElementById('card-table').innerHTML = html;
+      document.getElementById('export-section').style.display = 'flex';
+      document.getElementById('capture-card').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function initExamSelectors() {
+      const c = document.getElementById('exam-selectors-grid');
+      const sorted = [...EXAMS].sort((a, b) => a.code.localeCompare(b.code));
+      let h = '';
+      for (let i = 0; i < 9; i++) {
+        h += `<select id="ep-${i}"><option value="">-- Course ${i+1}: None --</option>${sorted.map(e => `<option value="${e.code}">${e.code} — ${e.course}</option>`).join('')}</select>`;
+      }
+      c.innerHTML = h;
+    }
+
+    function autoFillExamsFromTimetable() {
+      if (!currentClasses.length) renderQuickTimetable();
+      const codes = [...new Set(currentClasses.map(c => (c.code || '').toUpperCase().replace('-', '')))].filter(Boolean);
+      let idx = 0;
+      for (let i = 0; i < 9; i++) document.getElementById(`ep-${i}`).value = '';
+      codes.forEach(cd => {
+        const match = EXAMS.find(e => e.code.toUpperCase().replace('-', '') === cd);
+        if (match && idx < 9) {
+          document.getElementById(`ep-${idx}`).value = match.code;
+          idx++;
+        }
+      });
+      generateExamSchedule();
+    }
+
+    function generateExamSchedule() {
+      const picked = [];
+      for (let i = 0; i < 9; i++) {
+        const v = document.getElementById(`ep-${i}`).value;
+        if (v) picked.push(v);
+      }
+      if (!picked.length) return alert('Select course codes or click Auto-Fill!');
+      const matched = EXAMS.filter(e => picked.includes(e.code));
+      const title = RAW.meta?.examType || 'MIDTERM-II';
+      document.getElementById('card-heading').textContent = `${title} DATE SHEET`;
+      document.getElementById('card-subheading').textContent = `(${matched.length} Exams Selected • ${RAW.meta?.version || 'Fall 2026'})`;
+
+      let html = `<thead><tr><th style="width:140px;">Date</th><th style="width:120px;">Day</th><th>Course Code & Name</th><th style="width:210px;">Timing</th></tr></thead><tbody>`;
+      matched.forEach(ex => {
+        html += `<tr><td style="text-align:center; font-weight:800;">${ex.date}</td><td style="text-align:center; font-weight:700;">${ex.day}</td><td><span class="cr-badge" style="margin-right:6px;">${ex.code}</span> <strong>${ex.course}</strong></td><td style="text-align:center; font-weight:800;">${ex.slot}</td></tr>`;
+      });
+      html += `</tbody>`;
+      document.getElementById('card-table').innerHTML = html;
+      document.getElementById('export-section').style.display = 'flex';
+      document.getElementById('capture-card').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderFreeRooms() {
+      const day = document.getElementById('radar-day').value;
+      const slot = document.getElementById('radar-slot').value;
+      const all = [...new Set(TT.map(e => (e.room || '').trim()).filter(Boolean))].sort();
+      const busy = new Set(TT.filter(e => e.day === day && (e.slot || '').startsWith(slot)).map(e => (e.room || '').trim()));
+      const free = all.filter(r => !busy.has(r));
+      document.getElementById('free-room-count').textContent = `${free.length} of ${all.length} Free`;
+      document.getElementById('free-rooms-grid').innerHTML = free.map(r => `
+        <span style="padding:8px 14px; border-radius:8px; border:1px solid var(--border); background:rgba(16,185,129,0.12); color:#34d399; font-weight:800; font-size:0.8rem;">🚪 ${r}</span>
+      `).join('');
+    }
+
+    function setCardStyle(cls) { document.getElementById('capture-card').className = cls; }
+    function downloadCardPNG() {
+      const card = document.getElementById('capture-card');
+      const title = document.getElementById('card-heading').textContent.trim();
+      html2canvas(card, { scale: 2, useCORS: true }).then(c => {
+        const a = document.createElement('a');
+        a.download = `${title}_MythicCheatSheet.png`;
+        a.href = c.toDataURL('image/png');
+        a.click();
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (RAW.meta?.lastUpdated) document.getElementById('meta-updated').textContent = RAW.meta.lastUpdated;
+      if (RAW.meta?.examType) {
+        document.getElementById('meta-exam-badge').textContent = `💀 ${RAW.meta.examType} ACTIVE`;
+        document.getElementById('card-exam-title').textContent = `💀 ${RAW.meta.examType}`;
+        document.getElementById('exam-creator-heading').textContent = `${RAW.meta.examType} TIME TABLE CREATOR`;
+      }
+      const secs = [...new Set(TT.flatMap(e => secTokens(e.section)))].sort();
+      document.getElementById('sec-datalist').innerHTML = secs.map(s => `<option value="${s}"></option>`).join('');
+      initExamSelectors();
+      document.getElementById('quick-sec-input').value = 'BDS-5A';
+      renderQuickTimetable();
+      loadSectionIntoManual();
+    });
+  </script>
+</body>
+</html>
